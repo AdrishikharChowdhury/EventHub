@@ -1,4 +1,4 @@
-import { model, models, Schema, type HydratedDocument, type Model } from 'mongoose';
+import { model, models, Schema, type HydratedDocument, type Model, type Query } from 'mongoose';
 
 export interface IEvent {
   title: string;
@@ -144,6 +144,51 @@ const normalizeTime = (timeValue: string): string => {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
 
+type EventUpdateFields = {
+  title?: string;
+  slug?: string;
+  date?: string;
+  time?: string;
+};
+
+type EventUpdatePayload = EventUpdateFields & {
+  $set?: EventUpdateFields;
+};
+
+const normalizeUpdateFields = (fields: EventUpdateFields): void => {
+  if (typeof fields.title === 'string') {
+    const normalizedTitle = ensureNonEmptyString('title', fields.title);
+    fields.title = normalizedTitle;
+    fields.slug = createSlug(normalizedTitle);
+  }
+
+  if (typeof fields.date === 'string') {
+    fields.date = normalizeDateToISO(ensureNonEmptyString('date', fields.date));
+  }
+
+  if (typeof fields.time === 'string') {
+    fields.time = normalizeTime(ensureNonEmptyString('time', fields.time));
+  }
+};
+
+// Keep slug/date/time normalization consistent for query-based updates.
+const normalizeEventUpdateMiddleware = function (this: Query<unknown, IEvent>): void {
+  const rawUpdate = this.getUpdate();
+  if (!rawUpdate || Array.isArray(rawUpdate) || typeof rawUpdate !== 'object') {
+    return;
+  }
+
+  const update = rawUpdate as EventUpdatePayload;
+  normalizeUpdateFields(update);
+
+  if (update.$set && typeof update.$set === 'object') {
+    normalizeUpdateFields(update.$set);
+  }
+
+  this.setOptions({ runValidators: true });
+  this.setUpdate(update);
+};
+
 eventSchema.pre('save', function (this: HydratedDocument<IEvent>) {
   this.title = ensureNonEmptyString('title', this.title);
   this.description = ensureNonEmptyString('description', this.description);
@@ -172,6 +217,9 @@ eventSchema.pre('save', function (this: HydratedDocument<IEvent>) {
     this.slug = createSlug(this.title);
   }
 });
+
+eventSchema.pre('findOneAndUpdate', normalizeEventUpdateMiddleware);
+eventSchema.pre('updateOne', normalizeEventUpdateMiddleware);
 
 eventSchema.index({ slug: 1 }, { unique: true });
 

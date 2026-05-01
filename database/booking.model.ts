@@ -49,8 +49,6 @@ bookingSchema.pre('save', async function (this: HydratedDocument<IBooking>) {
   }
 });
 
-bookingSchema.index({ eventId: 1 });
-
 const Booking = (models.Booking as Model<IBooking>) || model<IBooking>('Booking', bookingSchema);
 
 export default Booking;
