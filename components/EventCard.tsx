@@ -3,12 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import posthog from "posthog-js";
-import { EventItem } from "@/lib/constants";
+import { IEvent } from "@/database/event.model";
 
-const EventCard = ({ title, image, slug, location, date, time }: EventItem) => {
+const EventCard = ({ title, image, slug, location, date, time }: IEvent) => {
   return (
     <Link
-      href={`/events`}
+      href={`/events/${slug}`}
       id="event-card"
       onClick={() => {
         posthog.capture("event_card_clicked", {
