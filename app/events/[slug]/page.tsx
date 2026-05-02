@@ -1,15 +1,27 @@
 import BookEvent from "@/components/BookEvent";
-import EventCard from "@/components/EventCard";
-import { IEvent } from "@/database/event.model";
-import { getSimilarEventsBySlug } from "@/lib/actions/event.actions";
+import SimilarEvents from "@/components/SimilarEvents";
+import { cacheLife } from "next/cache";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, Suspense } from "react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 if (!BASE_URL) {
   throw new Error("NEXT_PUBLIC_BASE_URL environment variable is not set");
+}
+
+async function getEvent(slug: string) {
+  "use cache";
+  cacheLife("hours");
+
+  const response = await fetch(`${BASE_URL}/api/events/${slug}`);
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    throw new Error(`Failed to fetch event: ${response.statusText}`);
+  }
+  const data = await response.json();
+  return data.event ?? null;
 }
 
 const EventDetailItem = ({
@@ -54,35 +66,15 @@ const EventTags = ({ tags }: { tags: string[] }): ReactNode => {
   );
 };
 
-// const bookings = 10;
-
-const EventDetailsPage = async ({
-  params,
+const EventDetails = async ({
+  paramsPromise,
 }: {
-  params: Promise<{ slug: string }>;
+  paramsPromise: Promise<{ slug: string }>;
 }) => {
-  const { slug } = await params;
-  let event;
-  try {
-    const response = await fetch(`${BASE_URL}/api/events/${slug}`, {
-      next: { revalidate: 60 },
-    });
+  const { slug } = await paramsPromise;
+  const event = await getEvent(slug);
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return notFound();
-      }
-      throw new Error(`Failed to fetch event: ${response.statusText}`);
-    }
-    const data = await response.json();
-    event = data.event;
-    if (!event) {
-      return notFound();
-    }
-  } catch (error) {
-    console.error("Error fetching event: ", error);
-    return notFound();
-  }
+  if (!event) return notFound();
 
   const {
     description,
@@ -98,8 +90,8 @@ const EventDetailsPage = async ({
     tags,
   } = event;
 
-  const similarEvents:IEvent[]=await getSimilarEventsBySlug(slug)
-  const bookings=10
+  const bookings = 10;
+
   return (
     <section id="event">
       <div className="header">
@@ -120,13 +112,21 @@ const EventDetailsPage = async ({
               alt="calendar"
               label={date}
             />
-            <EventDetailItem icon="/icons/clock.svg" alt="clock" label={time} />
+            <EventDetailItem
+              icon="/icons/clock.svg"
+              alt="clock"
+              label={time}
+            />
             <EventDetailItem
               icon="/icons/pin.svg"
               alt="location"
               label={location}
             />
-            <EventDetailItem icon="/icons/mode.svg" alt="mode" label={mode} />
+            <EventDetailItem
+              icon="/icons/mode.svg"
+              alt="mode"
+              label={mode}
+            />
             <EventDetailItem
               icon="/icons/audience.svg"
               alt="audience"
@@ -150,19 +150,24 @@ const EventDetailsPage = async ({
             ) : (
               <p className="text-sm">Be the first to Book Your spot!</p>
             )}
-            <BookEvent />
+            <BookEvent eventId={event._id} slug={slug} />
           </div>
         </aside>
       </div>
-      <div className="flex w-full flex-col gap-4 pt-20">
-        <h2>Similar Events</h2>
-        <div className="events">
-          {similarEvents.length>0 && similarEvents.map((event:IEvent,idx:number)=>(
-            <EventCard {...event} key={idx} />
-          ))}
-        </div>
-      </div>
+      <SimilarEvents slug={slug} />
     </section>
+  );
+};
+
+const EventDetailsPage = ({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) => {
+  return (
+    <Suspense fallback={<div>Loading event...</div>}>
+      <EventDetails paramsPromise={params} />
+    </Suspense>
   );
 };
 

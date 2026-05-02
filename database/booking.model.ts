@@ -1,11 +1,19 @@
-import { model, models, Schema, Types, type HydratedDocument, type Model } from 'mongoose';
-import Event from './event.model';
+import {
+  model,
+  models,
+  Schema,
+  Types,
+  type HydratedDocument,
+  type Model,
+} from "mongoose";
+import Event from "./event.model";
 
 export interface IBooking {
   eventId: Types.ObjectId;
   email: string;
   createdAt: Date;
   updatedAt: Date;
+  slug: string;
 }
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -14,7 +22,7 @@ const bookingSchema = new Schema<IBooking>(
   {
     eventId: {
       type: Schema.Types.ObjectId,
-      ref: 'Event',
+      ref: "Event",
       required: true,
       index: true,
     },
@@ -25,30 +33,33 @@ const bookingSchema = new Schema<IBooking>(
       lowercase: true,
       validate: {
         validator: (value: string): boolean => emailRegex.test(value),
-        message: 'Invalid email format.',
+        message: "Invalid email format.",
       },
     },
+    slug: { type: String },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-bookingSchema.pre('save', async function (this: HydratedDocument<IBooking>) {
+bookingSchema.pre("save", async function (this: HydratedDocument<IBooking>) {
   this.email = this.email.trim().toLowerCase();
   if (!emailRegex.test(this.email)) {
-    throw new Error('Invalid email format.');
+    throw new Error("Invalid email format.");
   }
 
   // Ensure bookings cannot reference an event that does not exist.
-  if (this.isNew || this.isModified('eventId')) {
+  if (this.isNew || this.isModified("eventId")) {
     const eventExists = await Event.exists({ _id: this.eventId });
     if (!eventExists) {
-      throw new Error('Referenced event does not exist.');
+      throw new Error("Referenced event does not exist.");
     }
   }
 });
 
-const Booking = (models.Booking as Model<IBooking>) || model<IBooking>('Booking', bookingSchema);
+const Booking =
+  (models.Booking as Model<IBooking>) ||
+  model<IBooking>("Booking", bookingSchema);
 
 export default Booking;
