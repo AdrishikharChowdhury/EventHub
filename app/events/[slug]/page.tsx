@@ -8,6 +8,10 @@ import { ReactNode } from "react";
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
+if (!BASE_URL) {
+  throw new Error("NEXT_PUBLIC_BASE_URL environment variable is not set");
+}
+
 const EventDetailItem = ({
   icon,
   label,
@@ -18,7 +22,7 @@ const EventDetailItem = ({
   alt: string;
 }): ReactNode => {
   return (
-    <div className="flex-row-gap-2 items-center">
+    <div className="flex flex-row gap-2 items-center">
       <Image src={icon} alt={alt} width={17} height={17} />
       <p>{label}</p>
     </div>
@@ -43,14 +47,14 @@ const EventTags = ({ tags }: { tags: string[] }): ReactNode => {
     <div className="flex flex-row gap-1.5 flex-wrap">
       {tags.map((tag, idx: number) => (
         <div className="pill" key={idx}>
-          tag
+          {tag}
         </div>
       ))}
     </div>
   );
 };
 
-const bookings = 10;
+// const bookings = 10;
 
 const EventDetailsPage = async ({
   params,
@@ -95,6 +99,7 @@ const EventDetailsPage = async ({
   } = event;
 
   const similarEvents:IEvent[]=await getSimilarEventsBySlug(slug)
+  const bookings=10
   return (
     <section id="event">
       <div className="header">
@@ -118,7 +123,7 @@ const EventDetailsPage = async ({
             <EventDetailItem icon="/icons/clock.svg" alt="clock" label={time} />
             <EventDetailItem
               icon="/icons/pin.svg"
-              alt="calendar"
+              alt="location"
               label={location}
             />
             <EventDetailItem icon="/icons/mode.svg" alt="mode" label={mode} />

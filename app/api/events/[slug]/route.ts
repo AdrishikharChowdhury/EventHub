@@ -45,10 +45,10 @@ export async function GET(
       console.error("Error fetching slug:", error);
     }
     if (error instanceof Error) {
-      if (error.message.includes("MONGODB_URI")) {
-      }
+      console.error("Database error:", error.message);
+      // Return generic message to client, avoid leaking internal details
       return NextResponse.json(
-        { message: "Failed to fetch event", error: error.message },
+        { message: "Failed to fetch event" },
         { status: 500 },
       );
     }

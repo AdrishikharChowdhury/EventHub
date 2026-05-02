@@ -4,7 +4,7 @@ import { useState } from "react";
 const BookEvent = () => {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
-  const handleSubmit=(e:React.SubmitEvent)=>{
+  const handleSubmit=(e: React.SubmitEvent<HTMLFormElement>)=>{
     e.preventDefault()
     setTimeout(()=>{
         setSubmitted(true)
@@ -13,9 +13,7 @@ const BookEvent = () => {
   return (
     <div id="book-event">
       {submitted ? (
-        <p>
-          <p className="text-sm">Thank you for signing up!</p>
-        </p>
+        <p className="text-sm">Thank you for signing up!</p>
       ) : (
         <form onSubmit={handleSubmit}>
           <div className="">

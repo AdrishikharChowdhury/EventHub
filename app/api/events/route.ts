@@ -2,7 +2,7 @@ import { Event } from "@/database";
 import connectToDatabase from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { v2 as cloudinary } from "cloudinary";
-import { error } from "console";
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,6 +39,14 @@ export async function POST(req: NextRequest) {
     if (!file) {
       return NextResponse.json(
         { message: "Image is required" },
+        { status: 400 },
+      );
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        { message: "Invalid image type. Allowed: JPEG, PNG, GIF, WEBP" },
         { status: 400 },
       );
     }
@@ -93,9 +101,11 @@ export async function GET() {
       { status: 200 },
     );
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
-      { message: "Event fetching failed", error: error },
+      { message: "Event fetching failed", error: error instanceof Error ? error.message : "unknown" },
       { status: 500 },
     );
   }
-}
+  }
+

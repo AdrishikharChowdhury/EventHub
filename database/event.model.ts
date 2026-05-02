@@ -1,4 +1,11 @@
-import { model, models, Schema, type HydratedDocument, type Model, type Query } from 'mongoose';
+import {
+  model,
+  models,
+  Schema,
+  type HydratedDocument,
+  type Model,
+  type Query,
+} from "mongoose";
 
 export interface IEvent {
   title: string;
@@ -21,22 +28,72 @@ export interface IEvent {
 
 const nonEmptyStringValidator = {
   validator: (value: string): boolean => value.trim().length > 0,
-  message: 'Field cannot be empty.',
+  message: "Field cannot be empty.",
 };
 
 const eventSchema = new Schema<IEvent>(
   {
-    title: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
     slug: { type: String, unique: true, lowercase: true, trim: true },
-    description: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
-    overview: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
-    image: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
-    venue: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
-    location: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
-    date: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
-    time: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
-    mode: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
-    audience: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
+    overview: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
+    image: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
+    venue: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
+    location: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
+    date: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
+    time: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
+    mode: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
+    audience: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
     agenda: {
       type: [String],
       required: true,
@@ -44,15 +101,21 @@ const eventSchema = new Schema<IEvent>(
       validate: [
         {
           validator: (items: string[]): boolean => items.length > 0,
-          message: 'Agenda must contain at least one item.',
+          message: "Agenda must contain at least one item.",
         },
         {
-          validator: (items: string[]): boolean => items.every((item) => item.length > 0),
-          message: 'Agenda items cannot be empty.',
+          validator: (items: string[]): boolean =>
+            items.every((item) => item.length > 0),
+          message: "Agenda items cannot be empty.",
         },
       ],
     },
-    organizer: { type: String, required: true, trim: true, validate: nonEmptyStringValidator },
+    organizer: {
+      type: String,
+      required: true,
+      trim: true,
+      validate: nonEmptyStringValidator,
+    },
     tags: {
       type: [String],
       required: true,
@@ -60,18 +123,19 @@ const eventSchema = new Schema<IEvent>(
       validate: [
         {
           validator: (items: string[]): boolean => items.length > 0,
-          message: 'Tags must contain at least one item.',
+          message: "Tags must contain at least one item.",
         },
         {
-          validator: (items: string[]): boolean => items.every((item) => item.length > 0),
-          message: 'Tags cannot contain empty values.',
+          validator: (items: string[]): boolean =>
+            items.every((item) => item.length > 0),
+          message: "Tags cannot contain empty values.",
         },
       ],
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 const twentyFourHourTimeRegex = /^([01]?\d|2[0-3]):([0-5]\d)$/;
@@ -89,13 +153,13 @@ const ensureNonEmptyString = (fieldName: string, value: string): string => {
 const createSlug = (title: string): string => {
   const slug = title
     .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
 
   if (!slug) {
-    throw new Error('Unable to generate slug from title.');
+    throw new Error("Unable to generate slug from title.");
   }
 
   return slug;
@@ -105,7 +169,7 @@ const createSlug = (title: string): string => {
 const normalizeDateToISO = (dateValue: string): string => {
   const parsedDate = new Date(dateValue);
   if (Number.isNaN(parsedDate.getTime())) {
-    throw new Error('Invalid date format.');
+    throw new Error("Invalid date format.");
   }
   return parsedDate.toISOString();
 };
@@ -118,30 +182,30 @@ const normalizeTime = (timeValue: string): string => {
   if (twentyFourMatch) {
     const hours = Number(twentyFourMatch[1]);
     const minutes = Number(twentyFourMatch[2]);
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   }
 
   const twelveMatch = normalized.match(twelveHourTimeRegex);
   if (!twelveMatch) {
-    throw new Error('Invalid time format. Use HH:mm or h:mm AM/PM.');
+    throw new Error("Invalid time format. Use HH:mm or h:mm AM/PM.");
   }
 
   let hours = Number(twelveMatch[1]);
-  const minutes = Number(twelveMatch[2] ?? '0');
+  const minutes = Number(twelveMatch[2] ?? "0");
   const meridiem = twelveMatch[3].toUpperCase();
 
   if (hours < 1 || hours > 12) {
-    throw new Error('Invalid time value.');
+    throw new Error("Invalid time value.");
   }
 
-  if (meridiem === 'PM' && hours !== 12) {
+  if (meridiem === "PM" && hours !== 12) {
     hours += 12;
   }
-  if (meridiem === 'AM' && hours === 12) {
+  if (meridiem === "AM" && hours === 12) {
     hours = 0;
   }
 
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 };
 
 type EventUpdateFields = {
@@ -156,73 +220,86 @@ type EventUpdatePayload = EventUpdateFields & {
 };
 
 const normalizeUpdateFields = (fields: EventUpdateFields): void => {
-  if (typeof fields.title === 'string') {
-    const normalizedTitle = ensureNonEmptyString('title', fields.title);
+  if (typeof fields.title === "string") {
+    const normalizedTitle = ensureNonEmptyString("title", fields.title);
     fields.title = normalizedTitle;
     fields.slug = createSlug(normalizedTitle);
   }
 
-  if (typeof fields.date === 'string') {
-    fields.date = normalizeDateToISO(ensureNonEmptyString('date', fields.date));
+  if (typeof fields.date === "string") {
+    fields.date = normalizeDateToISO(ensureNonEmptyString("date", fields.date));
   }
 
-  if (typeof fields.time === 'string') {
-    fields.time = normalizeTime(ensureNonEmptyString('time', fields.time));
+  if (typeof fields.time === "string") {
+    fields.time = normalizeTime(ensureNonEmptyString("time", fields.time));
   }
 };
 
+type EventUpdatePayloadExtended = EventUpdatePayload & {
+  $setOnInsert?: EventUpdateFields;
+};
+
 // Keep slug/date/time normalization consistent for query-based updates.
-const normalizeEventUpdateMiddleware = function (this: Query<unknown, IEvent>): void {
+const normalizeEventUpdateMiddleware = function (
+  this: Query<unknown, IEvent>,
+): void {
   const rawUpdate = this.getUpdate();
-  if (!rawUpdate || Array.isArray(rawUpdate) || typeof rawUpdate !== 'object') {
+  if (!rawUpdate || Array.isArray(rawUpdate) || typeof rawUpdate !== "object") {
     return;
   }
 
-  const update = rawUpdate as EventUpdatePayload;
+  const update = rawUpdate as EventUpdatePayloadExtended;
   normalizeUpdateFields(update);
 
-  if (update.$set && typeof update.$set === 'object') {
+  if (update.$set && typeof update.$set === "object") {
     normalizeUpdateFields(update.$set);
+  }
+
+  if (update.$setOnInsert && typeof update.$setOnInsert === "object") {
+    normalizeUpdateFields(update.$setOnInsert);
   }
 
   this.setOptions({ runValidators: true });
   this.setUpdate(update);
 };
 
-eventSchema.pre('save', function (this: HydratedDocument<IEvent>) {
-  this.title = ensureNonEmptyString('title', this.title);
-  this.description = ensureNonEmptyString('description', this.description);
-  this.overview = ensureNonEmptyString('overview', this.overview);
-  this.image = ensureNonEmptyString('image', this.image);
-  this.venue = ensureNonEmptyString('venue', this.venue);
-  this.location = ensureNonEmptyString('location', this.location);
-  this.mode = ensureNonEmptyString('mode', this.mode);
-  this.audience = ensureNonEmptyString('audience', this.audience);
-  this.organizer = ensureNonEmptyString('organizer', this.organizer);
-  this.date = normalizeDateToISO(ensureNonEmptyString('date', this.date));
-  this.time = normalizeTime(ensureNonEmptyString('time', this.time));
+eventSchema.pre("save", function (this: HydratedDocument<IEvent>) {
+  this.title = ensureNonEmptyString("title", this.title);
+  this.description = ensureNonEmptyString("description", this.description);
+  this.overview = ensureNonEmptyString("overview", this.overview);
+  this.image = ensureNonEmptyString("image", this.image);
+  this.venue = ensureNonEmptyString("venue", this.venue);
+  this.location = ensureNonEmptyString("location", this.location);
+  this.mode = ensureNonEmptyString("mode", this.mode);
+  this.audience = ensureNonEmptyString("audience", this.audience);
+  this.organizer = ensureNonEmptyString("organizer", this.organizer);
+  this.date = normalizeDateToISO(ensureNonEmptyString("date", this.date));
+  this.time = normalizeTime(ensureNonEmptyString("time", this.time));
 
   if (!Array.isArray(this.agenda) || this.agenda.length === 0) {
-    throw new Error('Agenda must contain at least one item.');
+    throw new Error("Agenda must contain at least one item.");
   }
   if (!Array.isArray(this.tags) || this.tags.length === 0) {
-    throw new Error('Tags must contain at least one item.');
+    throw new Error("Tags must contain at least one item.");
   }
 
-  this.agenda = this.agenda.map((item) => ensureNonEmptyString('agenda item', item));
-  this.tags = this.tags.map((item) => ensureNonEmptyString('tag', item));
+  this.agenda = this.agenda.map((item) =>
+    ensureNonEmptyString("agenda item", item),
+  );
+  this.tags = this.tags.map((item) => ensureNonEmptyString("tag", item));
 
   // Regenerate slug only when the title changes.
-  if (this.isNew || this.isModified('title')) {
+  if (this.isNew || this.isModified("title")) {
     this.slug = createSlug(this.title);
   }
 });
 
-eventSchema.pre('findOneAndUpdate', normalizeEventUpdateMiddleware);
-eventSchema.pre('updateOne', normalizeEventUpdateMiddleware);
+eventSchema.pre("findOneAndUpdate", normalizeEventUpdateMiddleware);
+eventSchema.pre("updateOne", normalizeEventUpdateMiddleware);
 
 eventSchema.index({ slug: 1 }, { unique: true });
 
-const Event = (models.Event as Model<IEvent>) || model<IEvent>('Event', eventSchema);
+const Event =
+  (models.Event as Model<IEvent>) || model<IEvent>("Event", eventSchema);
 
 export default Event;
