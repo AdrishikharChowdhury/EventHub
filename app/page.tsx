@@ -22,7 +22,7 @@ const Home = async () => {
       <div id="events" className="mt-20 space-y-7">
         <h3>Featured Events</h3>
         <ul className="events list-none">
-          {events && events.length>0 && events.map((event:IEvent, idx:number) => (
+          {events && events.length>0 && events.reverse().map((event:IEvent, idx:number) => (
             <li key={idx}>
               <EventCard {...event} />
             </li>
