@@ -9,13 +9,19 @@ const Events = async () => {
   cacheLife("hours");
   await connectToDatabase();
   const events = await Event.find({}).lean();
+  const serializedEvents = events.map((event: any) => ({
+    ...event,
+    _id: event._id.toString(),
+    createdAt: event.createdAt?.toISOString?.() ?? null,
+    updatedAt: event.updatedAt?.toISOString?.() ?? null,
+  }));
   return (
     <div id="events" className="mt-20 space-y-7">
       <h1 className="text-center">All Events</h1>
       <ul className="events list-none mt-20">
-        {events &&
-          events.length > 0 &&
-          events.reverse().map((event: IEvent, idx: number) => (
+        {serializedEvents &&
+          serializedEvents.length > 0 &&
+          serializedEvents.map((event: IEvent, idx: number) => (
             <li key={idx}>
               <EventCard {...event} />
             </li>
