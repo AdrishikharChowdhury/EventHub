@@ -1,15 +1,15 @@
 import EventCard from "@/components/EventCard";
 import ExploreBtn from "@/components/ExploreBtn";
-import { IEvent } from "@/database/event.model";
+import Event, { IEvent } from "@/database/event.model";
+import connectToDatabase from "@/lib/mongodb";
 import { cacheLife } from "next/cache";
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
 
 const Home = async () => {
-  'use cache'
-  cacheLife('hours')
-  const response = await fetch(`${BASE_URL}/api/events`);
-  const { events } = await response.json();
+  "use cache";
+  cacheLife("hours");
+  await connectToDatabase();
+  const events = await Event.find({}).lean();
   return (
     <section className="">
       <h1 className="text-center">
