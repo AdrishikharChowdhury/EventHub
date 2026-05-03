@@ -1,5 +1,5 @@
 import EventDetails from "@/components/EventDetails";
-import { DotmSquare10 } from "@/components/ui/dotm-square-10";
+import Loader from "@/components/Loader";
 import {  Suspense } from "react";
 
 
@@ -9,7 +9,7 @@ const EventDetailsPage = ({
   params: Promise<{ slug: string }>;
 }) => {
   return (
-    <Suspense fallback={<DotmSquare10/>}>
+    <Suspense fallback={<Loader/>}>
       <EventDetails paramsPromise={params} />
     </Suspense>
   );
