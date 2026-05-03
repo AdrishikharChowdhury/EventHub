@@ -24,6 +24,18 @@ async function getEvent(slug: string) {
   return data.event ?? null;
 }
 
+async function getBooking(id: string) {
+  "use cache";
+  cacheLife("hours");
+  const response = await fetch(`${BASE_URL}/api/booking/${id}`);
+  if (!response.ok) {
+    if (response.status === 404) return null;
+    throw new Error(`Failed to fetch event: ${response.statusText}`);
+  }
+  const data = await response.json();
+  return data.bookings ?? null;
+}
+
 const EventDetailItem = ({
   icon,
   label,
@@ -90,7 +102,7 @@ const EventDetails = async ({
     tags,
   } = event;
 
-  const bookings = 10;
+  const bookings = await getBooking(event._id.toString());
 
   return (
     <section id="event">
@@ -112,21 +124,13 @@ const EventDetails = async ({
               alt="calendar"
               label={date}
             />
-            <EventDetailItem
-              icon="/icons/clock.svg"
-              alt="clock"
-              label={time}
-            />
+            <EventDetailItem icon="/icons/clock.svg" alt="clock" label={time} />
             <EventDetailItem
               icon="/icons/pin.svg"
               alt="location"
               label={location}
             />
-            <EventDetailItem
-              icon="/icons/mode.svg"
-              alt="mode"
-              label={mode}
-            />
+            <EventDetailItem icon="/icons/mode.svg" alt="mode" label={mode} />
             <EventDetailItem
               icon="/icons/audience.svg"
               alt="audience"
@@ -143,10 +147,18 @@ const EventDetails = async ({
         <aside className="booking">
           <div className="signup-card">
             <h2>Book Your Spot</h2>
-            {bookings > 0 ? (
-              <p className="text-sm">
-                Join {bookings} people who have already booked their spot
-              </p>
+            {bookings?.length > 0 ? (
+              bookings?.length > 1 ? (
+                <p className="text-sm">
+                  Join {bookings.length} people who have already booked their
+                  spot
+                </p>
+              ) : (
+                <p className="text-sm">
+                  Join {bookings.length} person who have already booked their
+                  spot
+                </p>
+              )
             ) : (
               <p className="text-sm">Be the first to Book Your spot!</p>
             )}
