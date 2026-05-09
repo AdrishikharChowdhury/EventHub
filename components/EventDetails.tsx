@@ -38,9 +38,10 @@ const EventDetails = async ({
     mode,
     agenda,
     audience,
-    organiser,
+    organizer,
     tags,
   } = event;
+
 
   const bookings = await getBooking(event._id.toString());
   const dateItem = new EventDetailItemClass(
@@ -95,7 +96,7 @@ const EventDetails = async ({
           <EventAgenda agendaItems={agenda} />
           <section className="flex-col-gap-2">
             <h2>About the Organizer</h2>
-            <p>{organiser}</p>
+            <p>{organizer}</p>
           </section>
           <EventTags tags={tags} />
         </div>
